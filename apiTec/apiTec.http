@@ -1,0 +1,6 @@
+@apiTec_HostAddress = http://localhost:5018
+
+GET {{apiTec_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
