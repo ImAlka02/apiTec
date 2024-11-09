@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using apiTec.Helpers;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace apiTec.Controllers
 {
@@ -9,13 +10,19 @@ namespace apiTec.Controllers
     [ApiController]
     public class SecurityController : Controller
     {
-        [HttpPost]
+
+        public SecurityController()
+        {
+        }
+
+        [HttpPost("/Encryption")]
         public ActionResult Encryption(contraDTO contra) 
         {
             try
             {
                 if(contra == null) { return BadRequest("El dto esta vacio."); }
                 if (string.IsNullOrWhiteSpace(contra.contraseña)) { return BadRequest("Ingrese la contraseña. "); }
+
 
                 var contraEncriptada = Encriptar.StringToSHA512(contra.contraseña);
 
@@ -30,6 +37,12 @@ namespace apiTec.Controllers
             {
                 return BadRequest("Ocurrio este problema: " + e);
             }
+        }
+
+        [HttpPost("/Decrypt")]
+        public ActionResult Decrypt(contraDTO contra) 
+        {
+            return Ok(contra);
         }
     }
 
