@@ -1,4 +1,5 @@
 ﻿using apiTec.Helpers;
+using apiTec.Models.DTO_s;
 using apiTec.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace apiTec.Controllers
     [ApiController]
     public class LoginController : Controller
     {
-        [HttpPost("Login")]
+        [HttpPost]
         public ActionResult Login(userDTO user)
         {
             var url = $"https://sie.itesrc.net/api/alumno/datosgenerales?control={user.NumControl}&password={user.Contraseña}";
@@ -40,5 +41,26 @@ namespace apiTec.Controllers
                 return Problem("Ocurrio un problema: "+ e);
             }
         }
+
+
+        [HttpPost("DecryptPassword")]
+        public ActionResult PasswordDecrypter(contraDTO contra)
+        {
+            try
+            {
+                if (contra == null)
+                    return BadRequest();
+                if (string.IsNullOrWhiteSpace(contra.contraseña))
+                    return BadRequest();
+                AesEncrypter aes = new AesEncrypter();
+                var contraseñaDesencriptada = aes.Decrypt(contra.contraseña);
+                return Ok(contraseñaDesencriptada);
+            }
+            catch (Exception e)
+            {
+                return Problem("Ocurrio un problema: " + e);
+            }
+        }
+
     }
 }
