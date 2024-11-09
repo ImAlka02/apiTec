@@ -19,9 +19,6 @@ namespace apiTec.Controllers
     [ApiController]
     public class QrController : Controller
     {
-        public QrController()
-        {
-        }
         [HttpPost("Generar")]
         public ActionResult Generar(datosCredencialDTO datos)
         {
