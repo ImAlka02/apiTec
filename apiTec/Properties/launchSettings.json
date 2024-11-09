@@ -9,6 +9,13 @@
     }
   },
   "profiles": {
+    "data-encryption": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SECRET_KEY": "7ed64fb158a74476bef0e0c565c9be51",
+        "SECRET_IV": "kG1KF1e4qd+RcCiRYisGoA=="
+      }
+    },
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
@@ -17,8 +24,8 @@
       "applicationUrl": "http://localhost:5018",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SECRET_KEY": "12345678901234567890121234567890",
-        "SECRET_IV": "1233214567621256"
+        "SECRET_KEY": "7ed64fb158a74476bef0e0c565c9be51",
+        "SECRET_IV": "kG1KF1e4qd+RcCiRYisGoA=="
       }
     },
     "https": {
@@ -29,8 +36,8 @@
       "applicationUrl": "https://localhost:7236;http://localhost:5018",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SECRET_KEY": "12345678901234567890121234567890",
-        "SECRET_IV": "1233214567621256"
+        "SECRET_KEY": "7ed64fb158a74476bef0e0c565c9be51",
+        "SECRET_IV": "kG1KF1e4qd+RcCiRYisGoA=="
       }
     },
     "IIS Express": {
@@ -39,8 +46,8 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SECRET_KEY": "12345678901234567890121234567890",
-        "SECRET_IV": "1233214567621256"
+        "SECRET_KEY": "7ed64fb158a74476bef0e0c565c9be51",
+        "SECRET_IV": "kG1KF1e4qd+RcCiRYisGoA=="
       }
     }
   }

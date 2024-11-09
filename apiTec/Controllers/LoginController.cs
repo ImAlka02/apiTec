@@ -11,6 +11,7 @@ namespace apiTec.Controllers
     [ApiController]
     public class LoginController : Controller
     {
+        
         [HttpPost]
         public ActionResult Login(userDTO user)
         {
@@ -28,9 +29,9 @@ namespace apiTec.Controllers
                         if (strReader == null) return BadRequest();
                         using (StreamReader objReader = new StreamReader(strReader))
                         {
-                            AesEncrypter aes = new AesEncrypter();
+                            
                             string responseBody = objReader.ReadToEnd();
-                            var respuestDTO = new { resp = responseBody, contra = aes.Encrypt(user.Contraseña) };
+                            var respuestDTO = new { resp = responseBody, contra = AesEncrypter.Encrypt(user.Contraseña) };
                             return Ok(respuestDTO);
                         }
                     }
@@ -52,8 +53,7 @@ namespace apiTec.Controllers
                     return BadRequest();
                 if (string.IsNullOrWhiteSpace(contra.contraseña))
                     return BadRequest();
-                AesEncrypter aes = new AesEncrypter();
-                var contraseñaDesencriptada = aes.Decrypt(contra.contraseña);
+                var contraseñaDesencriptada = AesEncrypter.Decrypt(contra.contraseña);
                 return Ok(contraseñaDesencriptada);
             }
             catch (Exception e)

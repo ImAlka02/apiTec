@@ -19,6 +19,7 @@ namespace apiTec.Controllers
     [ApiController]
     public class QrController : Controller
     {
+
         [HttpPost("Generar")]
         public ActionResult Generar(datosCredencialDTO datos)
         {
@@ -36,12 +37,11 @@ namespace apiTec.Controllers
                 else
                 {
                     string datosConcatenados = $"{datos.Vigencia}<<{datos.NumControl}<<{datos.NombreAlumno}<<{datos.Carrera}<<{datos.NSS}<<{datos.CURP}<<{datos.Periodo}";
-                    AesEncrypter aes = new();
-                    var datosEncriptados = aes.Encrypt(datosConcatenados)
+                    var datosEncriptados = AesEncrypter.Encrypt(datosConcatenados)
                         .Replace("+", "-")
                         .Replace("/", "_");
                     QRCodeGenerator qr = new();
-                    QRCodeData qrData = qr.CreateQrCode($"https://localhost:44325/api/Qr/Validar/{datosEncriptados}", QRCodeGenerator.ECCLevel.Q);
+                    QRCodeData qrData = qr.CreateQrCode($"https://idtec.websitos256.com/api/Qr/Validar/{datosEncriptados}", QRCodeGenerator.ECCLevel.Q);
                     PngByteQRCode qrCode = new PngByteQRCode(qrData);
                     byte[] qrCodeImage = qrCode.GetGraphic(20);
                     using var stream = new MemoryStream(qrCodeImage);
@@ -63,12 +63,11 @@ namespace apiTec.Controllers
             try
             {
                 if(string.IsNullOrWhiteSpace(qrDatos)) { return BadRequest("El campo esta vacio. "); }
-                AesEncrypter aes = new();
                 string base64Datos = qrDatos.
                     Replace("-", "+")
                     .Replace("_", "/");
 
-                var datos = aes.Decrypt(base64Datos);
+                var datos = AesEncrypter.Decrypt(base64Datos);
                 return Ok(datos);
             }
             catch (Exception e)
