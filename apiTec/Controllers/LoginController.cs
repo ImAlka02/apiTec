@@ -15,6 +15,11 @@ namespace apiTec.Controllers
         [HttpPost]
         public ActionResult Login(userDTO user)
         {
+            if(user == null || string.IsNullOrWhiteSpace(user.NumControl) || string.IsNullOrWhiteSpace(user.Contraseña))
+            {
+                return BadRequest("El número de control y la contraseña son requeridos");
+            }
+
             var url = $"https://sie.itesrc.net/api/alumno/datosgenerales?control={user.NumControl}&password={user.Contraseña}";
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
@@ -24,6 +29,7 @@ namespace apiTec.Controllers
             {
                 using (WebResponse response = request.GetResponse())
                 {
+                
                     using (Stream strReader = response.GetResponseStream())
                     {
                         if (strReader == null) return BadRequest();
@@ -36,6 +42,22 @@ namespace apiTec.Controllers
                         }
                     }
                 }
+            }
+            catch(WebException ex)
+            {
+                if(ex.Response is HttpWebResponse errorResponse)
+                {
+                    var statusCode = errorResponse.StatusCode;
+                    string mensaje = "Error al obtener datos";
+
+                    if(statusCode == HttpStatusCode.BadRequest)
+                    {
+                        return BadRequest("El número de control o la contraseña no son válidos");
+                    }
+
+                    return StatusCode((int)statusCode, mensaje);
+                }
+                return Problem("Ocurrio un problema: " + ex);
             }
             catch (Exception e)
             {
