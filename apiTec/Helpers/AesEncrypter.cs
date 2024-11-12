@@ -41,6 +41,8 @@ namespace apiTec.Helpers
                 }
                 return IV;
             }
+
+
         }
         public static string Encrypt(string plainText)
         {
@@ -58,6 +60,7 @@ namespace apiTec.Helpers
                 aesAlg.Mode = CipherMode.CBC;
                 aesAlg.Key = CreateAesKey(PrivateKey);
                 aesAlg.IV = Convert.FromBase64String(PrivateIV);
+                aesAlg.Padding = PaddingMode.PKCS7;
                 //aesAlg.GenerateKey();
                 //aesAlg.GenerateIV();
 
@@ -77,32 +80,10 @@ namespace apiTec.Helpers
             }
 
             return Convert.ToBase64String(encrypted);
-            //using (Aes aesAlg = Aes.Create())
-            //{
-            //    aesAlg.Key = Key;
-            //    aesAlg.IV = IV;
-            //    aesAlg.Mode = CipherMode.CBC;
-            //    aesAlg.Padding = PaddingMode.PKCS7;
-
-            //    ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-            //    using (MemoryStream msEncrypt = new MemoryStream())
-            //    {
-            //        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-            //        {
-            //            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-            //            {
-            //                swEncrypt.Write(plainText);
-            //            }
-            //            byte[] encrypted = msEncrypt.ToArray();
-            //            return Convert.ToBase64String(encrypted);
-            //        }
-            //    }
-            //}
         }
 
         // Método para desencriptar
-        public static string Decrypt(string cipherText)
+        public static string? Decrypt(string cipherText)
         {
             if (cipherText is not { Length: > 0 })
                 throw new ArgumentNullException(nameof(cipherText));
@@ -111,28 +92,32 @@ namespace apiTec.Helpers
             if (PrivateIV is not { Length: > 0 })
                 throw new ArgumentNullException(nameof(PrivateIV));
 
-            using var aesAlg = Aes.Create();
-            aesAlg.Mode = CipherMode.CBC;
-            aesAlg.Key = CreateAesKey(PrivateKey);
-            aesAlg.IV = Convert.FromBase64String(PrivateIV);
 
-            var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+            try
+            {
+                using var aesAlg = Aes.Create();
+                aesAlg.Mode = CipherMode.CBC;
+                aesAlg.Padding = PaddingMode.PKCS7;
+                aesAlg.Key = CreateAesKey(PrivateKey);
+                aesAlg.IV = Convert.FromBase64String(PrivateIV);
 
-            using var msDecrypt = new MemoryStream(Convert.FromBase64String(cipherText));
-            using var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
-            using var srDecrypt = new StreamReader(csDecrypt);
-            var plaintext = srDecrypt.ReadToEnd();
+                var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
 
-            return plaintext;
+                using var msDecrypt = new MemoryStream(Convert.FromBase64String(cipherText));
+                using var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
+                using var srDecrypt = new StreamReader(csDecrypt);
+                var plaintext = srDecrypt.ReadToEnd();
+
+                return plaintext;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
         }
-        public static byte[] GenerateRandomPublicKey()
-        {
-            var iv = new byte[16]; // AES > IV > 128 bit
-            iv = RandomNumberGenerator.GetBytes(iv.Length);
-            return iv;
-        }
+       
         private static byte[] CreateAesKey(string inputString)
-
         {
             return Encoding.UTF8.GetByteCount(inputString) == 32 ? Encoding.UTF8.GetBytes(inputString) : SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(inputString));
         }
