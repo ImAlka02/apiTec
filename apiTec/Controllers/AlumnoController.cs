@@ -50,7 +50,7 @@ public class AlumnoController : ControllerBase
                 return NotFound("No se encontraron datos válidos.");
 
             // Crear diccionario
-            var dictionary = datosList.ToDictionary(item => item.Dato, item => item.Valor);
+            var dictionary = datosList.ToDictionary(item => item.Dato.Replace(" ", "_").Replace(":",""), item => item.Valor);
 
             // Convertir el diccionario a JSON y reemplazar las entidades HTML
             string resultJson = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
