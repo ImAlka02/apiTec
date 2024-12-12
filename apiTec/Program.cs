@@ -10,7 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient("DataClient", builder =>
 {
-    builder.BaseAddress = new Uri("https://sie.itesrc.net/api/");
+    builder.BaseAddress = new Uri("https://sie.itesrc.edu.mx/api/");
     builder.DefaultRequestHeaders.Accept.Clear();
     builder.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });

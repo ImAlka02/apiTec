@@ -1,27 +1,23 @@
 ﻿using apiTec.Helpers;
-using apiTec.Models.DTO_s;
 using apiTec.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Net;
-using System.Net.Http.Headers;
 
 namespace apiTec.Controllers
 {
-    [Route("api/[controller]/")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class LoginController : Controller
+    public class AlumnoController : ControllerBase
     {
         private readonly IHttpClientFactory clientFactory;
 
-        public LoginController(IHttpClientFactory clientFactory)
+        public AlumnoController(IHttpClientFactory clientFactory)
         {
             this.clientFactory = clientFactory;
         }
 
         [HttpPost]
-        public async Task<ActionResult> LoginAsync(userDTO user)
+        public async Task<ActionResult> GetDataAlumnos(userDTO user)
         {
             if (user == null) return BadRequest("El dto esta vacio");
             if (string.IsNullOrWhiteSpace(user.NumControl)) return BadRequest("Ingrese el numero de control. ");
@@ -29,12 +25,14 @@ namespace apiTec.Controllers
 
             try
             {
+                user.Contraseña = AesEncrypter.Decrypt(user.Contraseña)!;
                 var path = $"alumno/datosgenerales?control={user.NumControl}&password={user.Contraseña}";
                 using HttpClient client = clientFactory.CreateClient("DataClient");
                 HttpResponseMessage response = await client.GetAsync(path);
                 if (response.IsSuccessStatusCode)
-                { 
-                    return Ok(AesEncrypter.Encrypt(user.Contraseña));
+                {
+                    var responseBody = response.Content.ReadAsStringAsync();
+                    return Ok(responseBody.Result);
                 }
                 else
                 {
@@ -43,9 +41,8 @@ namespace apiTec.Controllers
             }
             catch (Exception e)
             {
-                return Problem("Ocurrio un problema: "+e);
+                return Problem("Ocurrio un problema: " + e);
             }
-            
         }
     }
 }
