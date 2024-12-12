@@ -1,7 +1,10 @@
 ﻿using apiTec.Helpers;
+using apiTec.Models;
 using apiTec.Models.DTOs;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
+
+using Newtonsoft.Json;
 
 namespace apiTec.Controllers
 {
@@ -31,8 +34,19 @@ namespace apiTec.Controllers
                 HttpResponseMessage response = await client.GetAsync(path);
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseBody = response.Content.ReadAsStringAsync();
-                    return Ok(responseBody.Result);
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    
+                    var datosList = JsonConvert.DeserializeObject<List<DatoValor>>(responseBody);
+                    var datosDictionary = new Dictionary<string, string>();
+                    
+                    foreach (var item in datosList)
+                    {
+                        datosDictionary[item.Dato] = item.Valor;
+                    }
+
+                    string resultJson = JsonConvert.SerializeObject(datosDictionary);
+                    
+                    return Ok(resultJson);
                 }
                 else
                 {
