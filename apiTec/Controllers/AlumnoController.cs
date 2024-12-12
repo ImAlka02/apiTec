@@ -6,57 +6,92 @@ using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 
-namespace apiTec.Controllers
+namespace apiTec.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AlumnoController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AlumnoController : ControllerBase
+    private readonly IHttpClientFactory clientFactory;
+
+    public AlumnoController(IHttpClientFactory clientFactory)
     {
-        private readonly IHttpClientFactory clientFactory;
+        this.clientFactory = clientFactory;
+    }
 
-        public AlumnoController(IHttpClientFactory clientFactory)
+    [HttpPost]
+    public async Task<ActionResult> GetDataAlumnos(userDTO user)
+    {
+        try
         {
-            this.clientFactory = clientFactory;
+            // Desencriptar la contraseña
+            user.Contraseña = AesEncrypter.Decrypt(user.Contraseña);
+            var path = $"alumno/datosgenerales?control={user.NumControl}&password={user.Contraseña}";
+
+            using HttpClient client = clientFactory.CreateClient("DataClient");
+            HttpResponseMessage response = await client.GetAsync(path);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return BadRequest(errorContent);
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            // Verificar que el body no esté vacío
+            if (string.IsNullOrEmpty(responseBody))
+                return NotFound("No se encontró información.");
+
+            // Deserializar el JSON a una lista de objetos
+            var datosList = JsonConvert.DeserializeObject<List<DatoValor>>(responseBody);
+
+            if (datosList == null || datosList.Count == 0)
+                return NotFound("No se encontraron datos válidos.");
+
+            // Crear diccionario
+            var dictionary = datosList.ToDictionary(item => item.Dato, item => item.Valor);
+
+            // Convertir el diccionario a JSON y reemplazar las entidades HTML
+            string resultJson = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
+            resultJson = ReplaceHtmlEntities(resultJson);
+
+            return Ok(resultJson);
+        }
+        catch (JsonException jsonEx)
+        {
+            return Problem("Error de deserialización: " + jsonEx.Message);
+        }
+        catch (Exception e)
+        {
+            return Problem("Ocurrió un problema: " + e.Message);
+        }
+    }
+
+    private string ReplaceHtmlEntities(string input)
+    {
+        var replacements = new Dictionary<string, string>
+        {
+            { "&OACUTE;", "Ó" },
+            { "&UACUTE;", "Ú" },
+            { "&EACUTE;", "É" },
+            { "&IACUTE;", "Í" },
+            { "&AACUTE;", "Á" },
+            { "&NTILDE;", "Ñ" },
+            { "&oacute;", "ó" },
+            { "&uacute;", "ú" },
+            { "&eacute;", "é" },
+            { "&iacute;", "í" },
+            { "&aacute;", "á" },
+            { "&ntilde;", "ñ" },
+            { "&AMP;", "&" }
+        };
+
+        foreach (var pair in replacements)
+        {
+            input = input.Replace(pair.Key, pair.Value, StringComparison.OrdinalIgnoreCase);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> GetDataAlumnos(userDTO user)
-        {
-            if (user == null) return BadRequest("El dto esta vacio");
-            if (string.IsNullOrWhiteSpace(user.NumControl)) return BadRequest("Ingrese el numero de control. ");
-            if (string.IsNullOrWhiteSpace(user.Contraseña)) return BadRequest("Ingrese la contraseña. ");
-
-            try
-            {
-                user.Contraseña = AesEncrypter.Decrypt(user.Contraseña)!;
-                var path = $"alumno/datosgenerales?control={user.NumControl}&password={user.Contraseña}";
-                using HttpClient client = clientFactory.CreateClient("DataClient");
-                HttpResponseMessage response = await client.GetAsync(path);
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    
-                    var datosList = JsonConvert.DeserializeObject<List<DatoValor>>(responseBody);
-                    var datosDictionary = new Dictionary<string, string>();
-                    
-                    foreach (var item in datosList)
-                    {
-                        datosDictionary[item.Dato] = item.Valor;
-                    }
-
-                    string resultJson = JsonConvert.SerializeObject(datosDictionary);
-                    
-                    return Ok(resultJson);
-                }
-                else
-                {
-                    return BadRequest(response.Content.ReadAsStringAsync().Result);
-                }
-            }
-            catch (Exception e)
-            {
-                return Problem("Ocurrio un problema: " + e);
-            }
-        }
+        return input;
     }
 }
